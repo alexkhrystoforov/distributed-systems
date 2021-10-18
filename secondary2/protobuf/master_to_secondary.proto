@@ -1,0 +1,16 @@
+syntax = 'proto3';
+
+
+message ReplicateRequest{
+    repeated int32 id = 1;
+    repeated string name = 2;
+    repeated string time = 3;
+}
+
+message ReplicateResponse{
+    bool ACK = 1;
+}
+
+service MasterService{
+    rpc replicate(ReplicateRequest) returns(ReplicateResponse);
+}
