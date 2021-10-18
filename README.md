@@ -23,16 +23,27 @@ all works perfect, just run master.py , secondary2.py, secondary.py and interact
 
 inside each folder run the respective commands:
 
+#### secondary2
 docker build -t secondary2 .
+
 docker run -p 50053:50053 secondary2
 
+#### secondary
+
 docker build -t secondary .
+
 docker run -p 50052:50052 secondary
 
+#### master
+
 docker build -t master .
+
 docker run -p 50051:50051 master
 
+#### client
+
 docker build -t client .
+
 docker run -ti client
 
 
