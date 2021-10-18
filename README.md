@@ -16,7 +16,7 @@ Master-Secondary communication - gRPC.
 
 ## How to run:
 
-###locally
+### locally
 all works perfect, just run master.py , secondary2.py, secondary.py and interact with them via client.py
 
 ### docker
