@@ -3,7 +3,7 @@ syntax = 'proto3';
 
 
 message UserPostRequest{
-    string name = 1;
+    string msg = 1;
 }
 
 message UserPostResponse{
@@ -15,9 +15,7 @@ message UserGetRequest{
 }
 
 message UserGetResponse{
-    repeated int32 id = 1;
-    repeated string name = 2;
-    repeated string time = 3;
+    repeated string msg = 1;
 }
 
 

@@ -12,32 +12,25 @@ import logging
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 
-all_id = []
-all_names = []
-all_time = []
+all_msg = []
 
 
 class UserServicer(user_pb2_grpc.UserServiceServicer):
     def get(self, request, context):
         if request.get:
             print("Process get request...")
-            return user_pb2.UserGetResponse(id=all_id,
-                                                name=all_names,
-                                                time=all_time)
+            return user_pb2.UserGetResponse(msg=all_msg)
+
 
 
 class MasterServicer(master_to_secondary_pb2_grpc.MasterServiceServicer):
     def replicate(self, request, context):
-        time.sleep(10)
+        time.sleep(20)
 
-        all_id.append(request.id[0])
-        all_names.append(request.name[0])
-        all_time.append(request.time[0])
+
+        all_msg.append(request.msg[0])
         print('replication was succeed: ')
-
-        print(all_id)
-        print(all_names)
-        print(all_time)
+        print(all_msg)
 
         return master_to_secondary_pb2.ReplicateResponse(ACK=True)
 
