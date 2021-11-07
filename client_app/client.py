@@ -13,19 +13,29 @@ if os.environ.get('http_proxy'):
 def post_method():
     with grpc.insecure_channel(servers_ports[0]) as channel:
         stub = user_pb2_grpc.UserServiceStub(channel)
-        name = str(input('enter your name:'))
+        msg = str(input('enter your msg:'))
         w = int(input('write concern:'))
-        response = stub.append(user_pb2.UserPostRequest(name=name, write_concern=w))
+        response = stub.append(user_pb2.UserPostRequest(msg=msg, write_concern=w))
         print('response is', response.success)
         channel.close()
+
+def grpc_server_on(channel) -> bool:
+    TIMEOUT_SEC = 1
+    try:
+        grpc.channel_ready_future(channel).result(timeout=TIMEOUT_SEC)
+        return True
+    except grpc.FutureTimeoutError:
+        return False
 
 
 def get_method(server_port):
     with grpc.insecure_channel(server_port) as channel:
-        stub = user_pb2_grpc.UserServiceStub(channel)
-        response = stub.get(user_pb2.UserGetRequest(get=True))
-        print('response is:', response)
-
+        if grpc_server_on(channel):
+            stub = user_pb2_grpc.UserServiceStub(channel)
+            response = stub.get(user_pb2.UserGetRequest(get=True))
+            print('response is:', response)
+        else:
+            print(f'server {server_port} is dead')
 
 def select_method():
     selected_method = input('Print 1 or 2 or 3.\n'
