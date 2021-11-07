@@ -5,18 +5,29 @@ import master_to_secondary_pb2_grpc as master_to_secondary_pb2_grpc
 import master_to_secondary_pb2 as master_to_secondary_pb2
 
 from concurrent import futures
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+import threading
+
 import time
 from datetime import datetime
 import grpc
 import logging
+
+from joblib import Parallel, delayed
+import multiprocessing
+import os
+
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
+if os.environ.get('https_proxy'):
+    del os.environ['https_proxy']
+if os.environ.get('http_proxy'):
+    del os.environ['http_proxy']
 
 
+ACK_statuses = []
 all_id = []
 all_names = []
 all_time = []
-
-servers_ports = ["127.0.0.1:50052", "127.0.0.1:50053"]
 
 
 class UserServicer(user_pb2_grpc.UserServiceServicer):
@@ -26,18 +37,16 @@ class UserServicer(user_pb2_grpc.UserServiceServicer):
         print('request is', request)
         save(request)
 
-        # check ACK statuses from each server
-        ACK_statuses = []
+        # parallelism for replication
+        Parallel(n_jobs=2, require='sharedmem')(delayed(replicate_method)(port) for port in servers_ports)
 
-        for port in servers_ports:
-            ACK_statuses.append(replicate_method(port))
-            print(f'ACK from port {port}', ACK_statuses[-1])
-
-        if all(ACK_statuses):
+        if sum(ACK_statuses) >= request.write_concern - 1:
             return user_pb2.UserPostResponse(success=f'SUCCESS: {request}')
         else:
             delete_last_save()
-            return user_pb2.UserPostResponse(success='Sorry, POST method was failed')
+            return user_pb2.UserPostResponse(success='Sorry, POST method was failed.'
+                                                     f'write concern is {request.write_concern},'
+                                                     f'number of ACK from secondaries is {sum(ACK_statuses)}')
 
     def get(self, request, context):
         if request.get:
@@ -45,6 +54,29 @@ class UserServicer(user_pb2_grpc.UserServiceServicer):
             return user_pb2.UserGetResponse(id=all_id,
                                                 name=all_names,
                                                 time=all_time)
+
+
+# def ACK2client(request):
+#     while True:
+#         if sum(ACK_statuses) >= request.write_concern - 1:
+#             return True, user_pb2.UserPostResponse(success=f'SUCCESS: {request}')
+
+
+def replicate_method(port):
+    with grpc.insecure_channel(port) as channel:
+        if grpc_server_on(channel):
+            print(f'Replication to secondary with port {port}')
+            stub = master_to_secondary_pb2_grpc.MasterServiceStub(channel)
+            response = stub.replicate(master_to_secondary_pb2.ReplicateRequest(id=all_id[-1:],
+                                                                            name=all_names[-1:],
+                                                                            time=all_time[-1:]))
+
+            print(f'ACK from port {port}', response.ACK)
+            global ACK_statuses
+            ACK_statuses.append(response.ACK)
+        else:
+            print(f'server {port} is dead')
+            ACK_statuses.append(False)
 
 
 def delete_last_save():
@@ -71,18 +103,16 @@ def save(request):
     return all_id, all_names, all_time
 
 
-def replicate_method(sec_server_port):
-    # with grpc.insecure_channel(sec_server_port, options=(('grpc.enable_http_proxy', 0),)) as channel:
-    with grpc.insecure_channel(sec_server_port) as channel:
-        print(f'Replication to secondary with port {sec_server_port}')
-        stub = master_to_secondary_pb2_grpc.MasterServiceStub(channel)
-        response = stub.replicate(master_to_secondary_pb2.ReplicateRequest(id=all_id[-1:],
-                                                                        name=all_names[-1:],
-                                                                        time=all_time[-1:]))
-        channel.close()
-        ACK_status = response.ACK
+def grpc_server_on(channel) -> bool:
+    TIMEOUT_SEC = 1
+    try:
+        grpc.channel_ready_future(channel).result(timeout=TIMEOUT_SEC)
+        return True
+    except grpc.FutureTimeoutError:
+        return False
 
-    return ACK_status
+
+servers_ports = ["localhost:50052", "localhost:50053"]
 
 
 def grpc_server():
@@ -93,8 +123,7 @@ def grpc_server():
     user_pb2_grpc.add_UserServiceServicer_to_server(user_serve, server)
 
     logging.info('GRPC running')
-    server.add_insecure_port(f'[::]:50051')
-    # server.add_insecure_port('localhost:50051')
+    server.add_insecure_port('[::]:50051')
     server.start()
     try:
         while True:

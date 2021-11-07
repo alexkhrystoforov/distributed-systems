@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\nuser.proto\"\x1f\n\x0fUserPostRequest\x12\x0c\n\x04name\x18\x01 \x01(\t\"#\n\x10UserPostResponse\x12\x0f\n\x07success\x18\x01 \x01(\t\"\x1d\n\x0eUserGetRequest\x12\x0b\n\x03get\x18\x01 \x01(\x08\"9\n\x0fUserGetResponse\x12\n\n\x02id\x18\x01 \x03(\x05\x12\x0c\n\x04name\x18\x02 \x03(\t\x12\x0c\n\x04time\x18\x03 \x03(\t2f\n\x0bUserService\x12-\n\x06\x61ppend\x12\x10.UserPostRequest\x1a\x11.UserPostResponse\x12(\n\x03get\x12\x0f.UserGetRequest\x1a\x10.UserGetResponseb\x06proto3'
+  serialized_pb=b'\n\nuser.proto\"6\n\x0fUserPostRequest\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x15\n\rwrite_concern\x18\x02 \x01(\x05\"#\n\x10UserPostResponse\x12\x0f\n\x07success\x18\x01 \x01(\t\"\x1d\n\x0eUserGetRequest\x12\x0b\n\x03get\x18\x01 \x01(\x08\"9\n\x0fUserGetResponse\x12\n\n\x02id\x18\x01 \x03(\x05\x12\x0c\n\x04name\x18\x02 \x03(\t\x12\x0c\n\x04time\x18\x03 \x03(\t2f\n\x0bUserService\x12-\n\x06\x61ppend\x12\x10.UserPostRequest\x1a\x11.UserPostResponse\x12(\n\x03get\x12\x0f.UserGetRequest\x1a\x10.UserGetResponseb\x06proto3'
 )
 
 
@@ -40,6 +40,13 @@ _USERPOSTREQUEST = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+    _descriptor.FieldDescriptor(
+      name='write_concern', full_name='UserPostRequest.write_concern', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
   ],
   extensions=[
   ],
@@ -53,7 +60,7 @@ _USERPOSTREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=14,
-  serialized_end=45,
+  serialized_end=68,
 )
 
 
@@ -84,8 +91,8 @@ _USERPOSTRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=47,
-  serialized_end=82,
+  serialized_start=70,
+  serialized_end=105,
 )
 
 
@@ -116,8 +123,8 @@ _USERGETREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=84,
-  serialized_end=113,
+  serialized_start=107,
+  serialized_end=136,
 )
 
 
@@ -162,8 +169,8 @@ _USERGETRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=115,
-  serialized_end=172,
+  serialized_start=138,
+  serialized_end=195,
 )
 
 DESCRIPTOR.message_types_by_name['UserPostRequest'] = _USERPOSTREQUEST
@@ -209,8 +216,8 @@ _USERSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=174,
-  serialized_end=276,
+  serialized_start=197,
+  serialized_end=299,
   methods=[
   _descriptor.MethodDescriptor(
     name='append',

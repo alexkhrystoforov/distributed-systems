@@ -4,6 +4,7 @@ syntax = 'proto3';
 
 message UserPostRequest{
     string name = 1;
+    int32 write_concern = 2;
 }
 
 message UserPostResponse{
