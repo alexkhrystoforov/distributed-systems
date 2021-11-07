@@ -6,6 +6,13 @@ POST method - appends a message into the in-memory list (only after get ACK from
 
 GET method - returns all messages from the in-memory list
 
+client POST request in addition to the message should also contain write concern parameter w=1,2,3,..,n
+w value specifies how many ACKs the master should receive from secondaries before responding to the client
+w = 1 - only from master
+w = 2 - from master and one secondary
+w = 3 - from master and two secondaries 
+
+replicas inconsistency (and eventual consistency) with the master by introducing the artificial delay on the secondary node. In this case, master and secondary should temporarily return different messages lists.
 
 
 #### Secondaries:
