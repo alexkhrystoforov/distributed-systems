@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x19master_to_secondary.proto\":\n\x10ReplicateRequest\x12\n\n\x02id\x18\x01 \x03(\x05\x12\x0c\n\x04name\x18\x02 \x03(\t\x12\x0c\n\x04time\x18\x03 \x03(\t\" \n\x11ReplicateResponse\x12\x0b\n\x03\x41\x43K\x18\x01 \x01(\x08\x32\x43\n\rMasterService\x12\x32\n\treplicate\x12\x11.ReplicateRequest\x1a\x12.ReplicateResponseb\x06proto3'
+  serialized_pb=b'\n\x19master_to_secondary.proto\"\x1f\n\x10ReplicateRequest\x12\x0b\n\x03msg\x18\x01 \x03(\t\" \n\x11ReplicateResponse\x12\x0b\n\x03\x41\x43K\x18\x01 \x01(\x08\x32\x43\n\rMasterService\x12\x32\n\treplicate\x12\x11.ReplicateRequest\x1a\x12.ReplicateResponseb\x06proto3'
 )
 
 
@@ -34,22 +34,8 @@ _REPLICATEREQUEST = _descriptor.Descriptor(
   create_key=_descriptor._internal_create_key,
   fields=[
     _descriptor.FieldDescriptor(
-      name='id', full_name='ReplicateRequest.id', index=0,
-      number=1, type=5, cpp_type=1, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='name', full_name='ReplicateRequest.name', index=1,
-      number=2, type=9, cpp_type=9, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
-    _descriptor.FieldDescriptor(
-      name='time', full_name='ReplicateRequest.time', index=2,
-      number=3, type=9, cpp_type=9, label=3,
+      name='msg', full_name='ReplicateRequest.msg', index=0,
+      number=1, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -67,7 +53,7 @@ _REPLICATEREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=29,
-  serialized_end=87,
+  serialized_end=60,
 )
 
 
@@ -98,8 +84,8 @@ _REPLICATERESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=89,
-  serialized_end=121,
+  serialized_start=62,
+  serialized_end=94,
 )
 
 DESCRIPTOR.message_types_by_name['ReplicateRequest'] = _REPLICATEREQUEST
@@ -129,8 +115,8 @@ _MASTERSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=123,
-  serialized_end=190,
+  serialized_start=96,
+  serialized_end=163,
   methods=[
   _descriptor.MethodDescriptor(
     name='replicate',
