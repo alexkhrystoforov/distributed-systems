@@ -18,89 +18,64 @@ import multiprocessing
 import os
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
-if os.environ.get('https_proxy'):
-    del os.environ['https_proxy']
-if os.environ.get('http_proxy'):
-    del os.environ['http_proxy']
 
-
-ACK_statuses = []
-all_id = []
-all_names = []
-all_time = []
+ACK_counter = []
+all_msg = []
 
 
 class UserServicer(user_pb2_grpc.UserServiceServicer):
     def append(self, request, context):
-
-        # save request in-memory
-        print('request is', request)
+        global ACK_counter
         save(request)
+        #Parallel(n_jobs=2, require='sharedmem')(delayed(replicate_method)(port) for port in servers_ports)
 
-        # parallelism for replication
-        Parallel(n_jobs=2, require='sharedmem')(delayed(replicate_method)(port) for port in servers_ports)
+        t2 = threading.Thread(target=replicate_method, args=[request.msg, servers_ports[0]])
+        t3 = threading.Thread(target=replicate_method, args=[request.msg,servers_ports[1]])
+        t2.start()
+        t3.start()
 
-        if sum(ACK_statuses) >= request.write_concern - 1:
-            return user_pb2.UserPostResponse(success=f'SUCCESS: {request}')
-        else:
-            delete_last_save()
-            return user_pb2.UserPostResponse(success='Sorry, POST method was failed.'
-                                                     f'write concern is {request.write_concern},'
-                                                     f'number of ACK from secondaries is {sum(ACK_statuses)}')
+        while True:
+            if sum(ACK_counter) >= request.write_concern - 1:
+                print('START ACK TO CLIENT')
+                return user_pb2.UserPostResponse(success=f'SUCCESS: {request}')
+        # else:
+        #     delete_last_save()
+        #     return user_pb2.UserPostResponse(success='Sorry, POST method was failed.'
+        #                                              f'write concern is {request.write_concern},'
+        #                                              f'number of ACK from secondaries is {sum(ACK_counter)}')
 
     def get(self, request, context):
         if request.get:
             print("Process get request...")
-            return user_pb2.UserGetResponse(id=all_id,
-                                                name=all_names,
-                                                time=all_time)
+            return user_pb2.UserGetResponse(msg=all_msg)
 
 
-# def ACK2client(request):
-#     while True:
-#         if sum(ACK_statuses) >= request.write_concern - 1:
-#             return True, user_pb2.UserPostResponse(success=f'SUCCESS: {request}')
+def replicate_method(request_msg,port):
 
-
-def replicate_method(port):
     with grpc.insecure_channel(port) as channel:
         if grpc_server_on(channel):
             print(f'Replication to secondary with port {port}')
+
+            print(f'name for {port}', request_msg)
             stub = master_to_secondary_pb2_grpc.MasterServiceStub(channel)
-            response = stub.replicate(master_to_secondary_pb2.ReplicateRequest(id=all_id[-1:],
-                                                                            name=all_names[-1:],
-                                                                            time=all_time[-1:]))
+            response = stub.replicate(master_to_secondary_pb2.ReplicateRequest(msg=request_msg))
 
             print(f'ACK from port {port}', response.ACK)
-            global ACK_statuses
-            ACK_statuses.append(response.ACK)
+            global ACK_counter
+            ACK_counter.append(response.ACK)
         else:
             print(f'server {port} is dead')
-            ACK_statuses.append(False)
+            ACK_counter.append(False)
 
 
 def delete_last_save():
-    if all_id:
-        del all_id[-1]
-        del all_names[-1]
-        del all_time[-1]
+    if all_msg:
+        del all_msg[-1]
 
 
 def save(request):
-    if not all_id:
-        current_id = 1
-    else:
-        current_id = all_id[-1] + 1
-
-    now = datetime.now()
-    current_user_time = now.strftime("%d/%m/%Y %H:%M:%S")
-
-    all_id.append(current_id)
-    all_names.append(request.name)
-    all_time.append(current_user_time)
-    print('Save new data:', all_id, all_names, all_time)
-
-    return all_id, all_names, all_time
+    all_msg.append(request.msg)
+    print('Save new data:', all_msg)
 
 
 def grpc_server_on(channel) -> bool:

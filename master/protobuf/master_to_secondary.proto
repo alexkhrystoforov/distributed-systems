@@ -2,9 +2,7 @@ syntax = 'proto3';
 
 
 message ReplicateRequest{
-    repeated int32 id = 1;
-    repeated string name = 2;
-    repeated string time = 3;
+    repeated string msg = 1;
 }
 
 message ReplicateResponse{
