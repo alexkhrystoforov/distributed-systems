@@ -2,7 +2,7 @@ syntax = 'proto3';
 
 
 message ReplicateRequest{
-    repeated string msg = 1;
+    string msg = 1;
 }
 
 message ReplicateResponse{
