@@ -26,9 +26,7 @@ class UserServicer(user_pb2_grpc.UserServiceServicer):
 class MasterServicer(master_to_secondary_pb2_grpc.MasterServiceServicer):
     def replicate(self, request, context):
         time.sleep(20)
-
-
-        all_msg.append(request.msg[0])
+        all_msg.append(request.msg)
         print('replication was succeed: ')
         print(all_msg)
 

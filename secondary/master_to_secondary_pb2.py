@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x19master_to_secondary.proto\"\x1f\n\x10ReplicateRequest\x12\x0b\n\x03msg\x18\x01 \x03(\t\" \n\x11ReplicateResponse\x12\x0b\n\x03\x41\x43K\x18\x01 \x01(\x08\x32\x43\n\rMasterService\x12\x32\n\treplicate\x12\x11.ReplicateRequest\x1a\x12.ReplicateResponseb\x06proto3'
+  serialized_pb=b'\n\x19master_to_secondary.proto\"\x1f\n\x10ReplicateRequest\x12\x0b\n\x03msg\x18\x01 \x01(\t\" \n\x11ReplicateResponse\x12\x0b\n\x03\x41\x43K\x18\x01 \x01(\x08\x32\x43\n\rMasterService\x12\x32\n\treplicate\x12\x11.ReplicateRequest\x1a\x12.ReplicateResponseb\x06proto3'
 )
 
 
@@ -35,8 +35,8 @@ _REPLICATEREQUEST = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='msg', full_name='ReplicateRequest.msg', index=0,
-      number=1, type=9, cpp_type=9, label=3,
-      has_default_value=False, default_value=[],
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
