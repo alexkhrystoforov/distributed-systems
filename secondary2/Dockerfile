@@ -13,4 +13,5 @@ RUN python -m grpc_tools.protoc -I protobuf --python_out=. --grpc_python_out=. p
 
 
 EXPOSE 50053
-ENTRYPOINT [ "python", "secondary2.py" ]
+#ENTRYPOINT [ "python", "secondary2.py" ]
+ENTRYPOINT [ "python", "secondary2.py" , "--host", "127.0.0.1", "--port", "50053"]

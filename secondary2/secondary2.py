@@ -32,6 +32,10 @@ class MasterServicer(master_to_secondary_pb2_grpc.MasterServiceServicer):
 
         return master_to_secondary_pb2.ReplicateResponse(ACK=True)
 
+    def deletelastmsg(self, request, context):
+        del all_msg[-1]
+        print('last msg was deleted')
+        return master_to_secondary_pb2.DeleteLastMsgResponse(delete=True)
 
 def grpc_server():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

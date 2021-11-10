@@ -9,6 +9,14 @@ message ReplicateResponse{
     bool ACK = 1;
 }
 
+message DeleteLastMsgRequest{
+    bool delete = 1;
+}
+message DeleteLastMsgResponse{
+    bool delete = 1;
+}
+
 service MasterService{
     rpc replicate(ReplicateRequest) returns(ReplicateResponse);
+    rpc deletelastmsg(DeleteLastMsgRequest) returns(DeleteLastMsgResponse);
 }
