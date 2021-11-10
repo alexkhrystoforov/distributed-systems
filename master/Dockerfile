@@ -13,4 +13,5 @@ RUN python -m grpc_tools.protoc -I protobuf --python_out=. --grpc_python_out=. p
 
 
 EXPOSE 50051
-ENTRYPOINT [ "python", "master.py" ]
+#ENTRYPOINT [ "python", "master.py" , "--host", "127.0.0.1", "--port", "50051"]
+CMD ["python", "master.py"]
