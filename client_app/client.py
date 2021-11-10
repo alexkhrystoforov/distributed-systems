@@ -9,15 +9,16 @@ if os.environ.get('http_proxy'):
     del os.environ['http_proxy']
 
 
-
 def post_method():
-    with grpc.insecure_channel(servers_ports[0]) as channel:
+    # with grpc.insecure_channel(servers_ports[0]) as channel:
+    with grpc.insecure_channel(servers_ports[0], options=(('grpc.enable_http_proxy', 0),)) as channel:
         stub = user_pb2_grpc.UserServiceStub(channel)
         msg = str(input('enter your msg:'))
         w = int(input('write concern:'))
         response = stub.append(user_pb2.UserPostRequest(msg=msg, write_concern=w))
         print('response is', response.success)
         channel.close()
+
 
 def grpc_server_on(channel) -> bool:
     TIMEOUT_SEC = 1
@@ -58,10 +59,7 @@ def select_server():
 
 # 51 - master, 52-53 - secondaries. POST only for master, GET for any
 servers_ports = ["localhost:50051", "localhost:50052", "localhost:50053"] # failed connect grpc_status=14
-# servers_ports = ["127.0.0.1:50051", "localhost:50052", "localhost:50053"] # failed connect grpc_status=14
-# servers_ports = ["172.17.0.2:50051", "localhost:50052", "localhost:50053"] # failed connect grpc_status=14
-# servers_ports = [":50051", "localhost:50052", "localhost:50053"] #DNS error
-# servers_ports = ['50051']
+# servers_ports = [":50051", ":50052", ":50053"] # failed connect grpc_status=14
 
 
 def run():

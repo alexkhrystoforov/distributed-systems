@@ -12,4 +12,5 @@ RUN python -m grpc_tools.protoc -I protobuf --python_out=. --grpc_python_out=. p
 
 
 EXPOSE 50055
-ENTRYPOINT [ "python", "client.py" ]
+#ENTRYPOINT [ "python", "client.py", "--host=0.0.0.0"]
+CMD [ "python", "client.py"]
