@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\x19master_to_secondary.proto\"\x1f\n\x10ReplicateRequest\x12\x0b\n\x03msg\x18\x01 \x01(\t\" \n\x11ReplicateResponse\x12\x0b\n\x03\x41\x43K\x18\x01 \x01(\x08\x32\x43\n\rMasterService\x12\x32\n\treplicate\x12\x11.ReplicateRequest\x1a\x12.ReplicateResponseb\x06proto3'
+  serialized_pb=b'\n\x19master_to_secondary.proto\"\x1f\n\x10ReplicateRequest\x12\x0b\n\x03msg\x18\x01 \x01(\t\" \n\x11ReplicateResponse\x12\x0b\n\x03\x41\x43K\x18\x01 \x01(\x08\"&\n\x14\x44\x65leteLastMsgRequest\x12\x0e\n\x06\x64\x65lete\x18\x01 \x01(\x08\"\'\n\x15\x44\x65leteLastMsgResponse\x12\x0e\n\x06\x64\x65lete\x18\x01 \x01(\x08\x32\x83\x01\n\rMasterService\x12\x32\n\treplicate\x12\x11.ReplicateRequest\x1a\x12.ReplicateResponse\x12>\n\rdeletelastmsg\x12\x15.DeleteLastMsgRequest\x1a\x16.DeleteLastMsgResponseb\x06proto3'
 )
 
 
@@ -88,8 +88,74 @@ _REPLICATERESPONSE = _descriptor.Descriptor(
   serialized_end=94,
 )
 
+
+_DELETELASTMSGREQUEST = _descriptor.Descriptor(
+  name='DeleteLastMsgRequest',
+  full_name='DeleteLastMsgRequest',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='delete', full_name='DeleteLastMsgRequest.delete', index=0,
+      number=1, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=96,
+  serialized_end=134,
+)
+
+
+_DELETELASTMSGRESPONSE = _descriptor.Descriptor(
+  name='DeleteLastMsgResponse',
+  full_name='DeleteLastMsgResponse',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='delete', full_name='DeleteLastMsgResponse.delete', index=0,
+      number=1, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=136,
+  serialized_end=175,
+)
+
 DESCRIPTOR.message_types_by_name['ReplicateRequest'] = _REPLICATEREQUEST
 DESCRIPTOR.message_types_by_name['ReplicateResponse'] = _REPLICATERESPONSE
+DESCRIPTOR.message_types_by_name['DeleteLastMsgRequest'] = _DELETELASTMSGREQUEST
+DESCRIPTOR.message_types_by_name['DeleteLastMsgResponse'] = _DELETELASTMSGRESPONSE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 ReplicateRequest = _reflection.GeneratedProtocolMessageType('ReplicateRequest', (_message.Message,), {
@@ -106,6 +172,20 @@ ReplicateResponse = _reflection.GeneratedProtocolMessageType('ReplicateResponse'
   })
 _sym_db.RegisterMessage(ReplicateResponse)
 
+DeleteLastMsgRequest = _reflection.GeneratedProtocolMessageType('DeleteLastMsgRequest', (_message.Message,), {
+  'DESCRIPTOR' : _DELETELASTMSGREQUEST,
+  '__module__' : 'master_to_secondary_pb2'
+  # @@protoc_insertion_point(class_scope:DeleteLastMsgRequest)
+  })
+_sym_db.RegisterMessage(DeleteLastMsgRequest)
+
+DeleteLastMsgResponse = _reflection.GeneratedProtocolMessageType('DeleteLastMsgResponse', (_message.Message,), {
+  'DESCRIPTOR' : _DELETELASTMSGRESPONSE,
+  '__module__' : 'master_to_secondary_pb2'
+  # @@protoc_insertion_point(class_scope:DeleteLastMsgResponse)
+  })
+_sym_db.RegisterMessage(DeleteLastMsgResponse)
+
 
 
 _MASTERSERVICE = _descriptor.ServiceDescriptor(
@@ -115,8 +195,8 @@ _MASTERSERVICE = _descriptor.ServiceDescriptor(
   index=0,
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_start=96,
-  serialized_end=163,
+  serialized_start=178,
+  serialized_end=309,
   methods=[
   _descriptor.MethodDescriptor(
     name='replicate',
@@ -125,6 +205,16 @@ _MASTERSERVICE = _descriptor.ServiceDescriptor(
     containing_service=None,
     input_type=_REPLICATEREQUEST,
     output_type=_REPLICATERESPONSE,
+    serialized_options=None,
+    create_key=_descriptor._internal_create_key,
+  ),
+  _descriptor.MethodDescriptor(
+    name='deletelastmsg',
+    full_name='MasterService.deletelastmsg',
+    index=1,
+    containing_service=None,
+    input_type=_DELETELASTMSGREQUEST,
+    output_type=_DELETELASTMSGRESPONSE,
     serialized_options=None,
     create_key=_descriptor._internal_create_key,
   ),

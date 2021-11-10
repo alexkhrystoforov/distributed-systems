@@ -22,15 +22,19 @@ class UserServicer(user_pb2_grpc.UserServiceServicer):
             return user_pb2.UserGetResponse(msg=all_msg)
 
 
-
 class MasterServicer(master_to_secondary_pb2_grpc.MasterServiceServicer):
     def replicate(self, request, context):
-        time.sleep(20)
+        #time.sleep(20)
         all_msg.append(request.msg)
         print('replication was succeed: ')
         print(all_msg)
 
         return master_to_secondary_pb2.ReplicateResponse(ACK=True)
+
+    def deletelastmsg(self, request, context):
+        del all_msg[-1]
+        print('last msg was deleted')
+        return master_to_secondary_pb2.DeleteLastMsgResponse(delete=True)
 
 
 def grpc_server():
