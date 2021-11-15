@@ -19,23 +19,12 @@ class MasterServiceStub(object):
                 request_serializer=master__to__secondary__pb2.ReplicateRequest.SerializeToString,
                 response_deserializer=master__to__secondary__pb2.ReplicateResponse.FromString,
                 )
-        self.deletelastmsg = channel.unary_unary(
-                '/MasterService/deletelastmsg',
-                request_serializer=master__to__secondary__pb2.DeleteLastMsgRequest.SerializeToString,
-                response_deserializer=master__to__secondary__pb2.DeleteLastMsgResponse.FromString,
-                )
 
 
 class MasterServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def replicate(self, request, context):
-        """Missing associated documentation comment in .proto file."""
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def deletelastmsg(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -48,11 +37,6 @@ def add_MasterServiceServicer_to_server(servicer, server):
                     servicer.replicate,
                     request_deserializer=master__to__secondary__pb2.ReplicateRequest.FromString,
                     response_serializer=master__to__secondary__pb2.ReplicateResponse.SerializeToString,
-            ),
-            'deletelastmsg': grpc.unary_unary_rpc_method_handler(
-                    servicer.deletelastmsg,
-                    request_deserializer=master__to__secondary__pb2.DeleteLastMsgRequest.FromString,
-                    response_serializer=master__to__secondary__pb2.DeleteLastMsgResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -78,22 +62,5 @@ class MasterService(object):
         return grpc.experimental.unary_unary(request, target, '/MasterService/replicate',
             master__to__secondary__pb2.ReplicateRequest.SerializeToString,
             master__to__secondary__pb2.ReplicateResponse.FromString,
-            options, channel_credentials,
-            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
-
-    @staticmethod
-    def deletelastmsg(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/MasterService/deletelastmsg',
-            master__to__secondary__pb2.DeleteLastMsgRequest.SerializeToString,
-            master__to__secondary__pb2.DeleteLastMsgResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
