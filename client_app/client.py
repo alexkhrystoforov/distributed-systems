@@ -1,23 +1,27 @@
 import grpc
 import user_pb2, user_pb2_grpc
-import os
+import argparse
 
 
-if os.environ.get('https_proxy'):
-    del os.environ['https_proxy']
-if os.environ.get('http_proxy'):
-    del os.environ['http_proxy']
+def post_method(msg, w):
+    with grpc.insecure_channel("localhost:50051") as channel:
+        if grpc_server_on(channel):
+            stub = user_pb2_grpc.UserServiceStub(channel)
+            response = stub.append(user_pb2.UserPostRequest(msg=msg, write_concern=w))
+            print('response is', response.success)
+            channel.close()
+        else:
+            print('master server is not available')
 
 
-def post_method():
-    # with grpc.insecure_channel(servers_ports[0]) as channel:
-    with grpc.insecure_channel(servers_ports[0], options=(('grpc.enable_http_proxy', 0),)) as channel:
-        stub = user_pb2_grpc.UserServiceStub(channel)
-        msg = str(input('enter your msg:'))
-        w = int(input('write concern:'))
-        response = stub.append(user_pb2.UserPostRequest(msg=msg, write_concern=w))
-        print('response is', response.success)
-        channel.close()
+def get_method(server_port):
+    with grpc.insecure_channel('localhost:'+server_port) as channel:
+        if grpc_server_on(channel):
+            stub = user_pb2_grpc.UserServiceStub(channel)
+            response = stub.get(user_pb2.UserGetRequest(get=True))
+            print('response is:', response)
+        else:
+            print('localhost:'+server_port, 'is not available')
 
 
 def grpc_server_on(channel) -> bool:
@@ -29,61 +33,20 @@ def grpc_server_on(channel) -> bool:
         return False
 
 
-def get_method(server_port):
-    with grpc.insecure_channel(server_port) as channel:
-        if grpc_server_on(channel):
-            stub = user_pb2_grpc.UserServiceStub(channel)
-            response = stub.get(user_pb2.UserGetRequest(get=True))
-            print('response is:', response)
-        else:
-            print(f'server {server_port} is dead')
-
-def select_method():
-    selected_method = input('Print 1 or 2 or 3.\n'
-                            'options: \n'
-                            '1 = POST \n'
-                            '2 = GET \n'
-                            '3 = Stop \n')
-
-    return selected_method
-
-
-def select_server():
-    selected_server = input('server for GET method:\n'
-                              '1 = master\n'
-                              '2 = secondary1\n'
-                              '3 = secondary2\n')
-
-    return selected_server
-
-
-# 51 - master, 52-53 - secondaries. POST only for master, GET for any
-servers_ports = ["localhost:50051", "localhost:50052", "localhost:50053"] # failed connect grpc_status=14
-# servers_ports = [":50051", ":50052", ":50053"] # failed connect grpc_status=14
-
-
-def run():
-    method_key = select_method()
-
-    if method_key == '1':
-        post_method(), run()
-
-    elif method_key == '2':
-        server_key = select_server()
-        if server_key == '1':
-            get_method(servers_ports[0]), run()
-
-        elif server_key == '2':
-            get_method(servers_ports[1]), run()
-
-        elif server_key == '3':
-            get_method(servers_ports[2]), run()
-
-    elif method_key == '3':
-        print('STOP client')
-    else:
-        print('wrong input')
-
-
 if __name__ == '__main__':
-    run()
+
+    parser = argparse.ArgumentParser(description='client')
+    parser.add_argument('--get', help='call get method', required=False)
+    parser.add_argument('--post', help='call post method', required=False)
+    parser.add_argument('--w', help='your write concern', required=False)
+    parser.add_argument('--msg', help='your msg', required=False)
+    parser.add_argument('--port', help='server port', required=False)
+
+    args = parser.parse_args()
+
+    if args.get:
+        get_method(args.port)
+    elif args.post:
+        post_method(args.msg, int(args.w))
+    else:
+        print('nothing')
