@@ -4,6 +4,7 @@ import argparse
 
 
 def post_method(msg, w):
+    # with grpc.insecure_channel("localhost:50051", options=options) as channel:
     with grpc.insecure_channel("localhost:50051") as channel:
         if grpc_server_on(channel):
             stub = user_pb2_grpc.UserServiceStub(channel)
