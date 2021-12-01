@@ -2,6 +2,8 @@ import master_to_secondary_pb2_grpc as master_to_secondary_pb2_grpc
 import master_to_secondary_pb2 as master_to_secondary_pb2
 import user_pb2_grpc as user_pb2_grpc
 import user_pb2 as user_pb2
+import health_pb2_grpc as health_pb2_grpc
+import health_pb2 as health_pb2
 
 from concurrent import futures
 import time
@@ -9,11 +11,10 @@ import argparse
 import grpc
 import logging
 
-import sys, os
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
-all_msg = []
-all_id = []
+data_dict = {'id': [], 'msg': []}
+
 delay = 0
 
 
@@ -22,52 +23,63 @@ class UserServicer(user_pb2_grpc.UserServiceServicer):
         last_ordered_msg = 0
         print("Process get request...")
 
-        if len(all_id) == 1 and all_id[0] == 1:
-            return user_pb2.UserGetResponse(msg=all_msg)
+        if len(data_dict.get('id')) == 1 and data_dict.get('id')[0] == 1:
+            return user_pb2.UserGetResponse(msg=data_dict.get('msg'))
 
-        #  find priority list python
-
-        elif len(all_id) > 2:
-            for x in all_id:
-                if x == all_id[-1] and x - all_id[all_id.index(x) - 1] == 1:
+        elif len(data_dict.get('id')) >= 2:
+            for x in data_dict.get('id'):
+                if x == data_dict.get('id')[-1] and x - data_dict.get('id')[data_dict.get('id').index(x) - 1] == 1:
                     last_ordered_msg = x + 1
-                elif x - all_id[all_id.index(x) + 1] == -1:
+                elif x - data_dict.get('id')[data_dict.get('id').index(x) + 1] == -1:
                     last_ordered_msg = x + 1
                 else:
-                    if x == 1 and x - all_id[all_id.index(x) + 1] != -1:
+                    if x == 1 and x - data_dict.get('id')[data_dict.get('id').index(x) + 1] != -1:
                         last_ordered_msg = 1
                         break
                     else:
                         break
 
-            return user_pb2.UserGetResponse(msg=all_msg[:last_ordered_msg])
+            return user_pb2.UserGetResponse(msg=data_dict.get('msg')[:last_ordered_msg])
 
         else:
-            return user_pb2.UserGetResponse(msg=[])
+            return user_pb2.UserGetResponse(msg=data_dict.get('msg'))
 
 
 class MasterServicer(master_to_secondary_pb2_grpc.MasterServiceServicer):
     def replicate(self, request, context):
         global delay
-        global all_msg
-        global all_id
+        global data_dict
 
         time.sleep(delay)
-        all_msg.append(request.msg)
-        all_id.append(request.id)
+        if request.id not in data_dict['id']:
+            data_dict['msg'].append(request.msg)
+            data_dict['id'].append(request.id)
 
-        all_id.sort()
-        all_msg = [x for _, x in sorted(zip(all_id, all_msg))]
+        else:
+            return master_to_secondary_pb2.ReplicateResponse(ACK=True)
+
+        # right order
+        new_msg = [x for _, x in sorted(zip(data_dict.get('id'), data_dict.get('msg')))]
+
+        data_dict.update({'id': sorted(data_dict.get('id')), 'msg': new_msg})
 
         print('replication was succeed: ')
-        print('all msgs: ', all_msg)
-        print('all ids ', all_id)
+        print('data: ', data_dict)
 
         return master_to_secondary_pb2.ReplicateResponse(ACK=True)
 
 
+class HealthServicer(health_pb2_grpc.HealthServicer):
+    def Check(self, request, context):
+        return health_pb2.HealthCheckResponse(status='alive')
+
+
 def grpc_server(port):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+
+    # Register Health service
+    health_serve = HealthServicer()
+    health_pb2_grpc.add_HealthServicer_to_server(health_serve, server)
 
     # Register Master service
     master_to_secondary_serve = MasterServicer()
