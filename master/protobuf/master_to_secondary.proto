@@ -13,4 +13,5 @@ message ReplicateResponse{
 
 service MasterService{
     rpc replicate(ReplicateRequest) returns(ReplicateResponse);
+
 }
