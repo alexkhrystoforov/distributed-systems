@@ -2,6 +2,7 @@
 
 Run servers:
   docker compose build
+  
   docker compose up
 
 Run client in terminal:
