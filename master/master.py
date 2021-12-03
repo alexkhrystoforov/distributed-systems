@@ -16,7 +16,8 @@ import math
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 data_dict = {'id': [], 'msg': []}
-servers_ports = ["localhost:50052", "localhost:50053"]
+# servers_ports = ["localhost:50052", "localhost:50053"]
+servers_ports = ["node1:50052", "node2:50053"]
 servers_health = {servers_ports[0]: False, servers_ports[1]: False}
 
 quorum = math.ceil(len(servers_ports) + 1 // 2)
@@ -120,7 +121,7 @@ class CountDownLatch(object):
         self.lock.acquire()
         self.count -= 1
         if self.count <= 0:
-            self.lock.notifyAll()
+            self.lock.notify_all()
         self.lock.release()
 
     def a_wait(self):

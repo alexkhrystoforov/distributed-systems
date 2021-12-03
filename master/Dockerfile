@@ -11,7 +11,4 @@ RUN python -m pip install -r /master/requirements.txt
 RUN python -m grpc_tools.protoc -I protobuf --python_out=. --grpc_python_out=. protobuf/master_to_secondary.proto
 RUN python -m grpc_tools.protoc -I protobuf --python_out=. --grpc_python_out=. protobuf/user.proto
 
-
-EXPOSE 50051
-#ENTRYPOINT [ "python", "master.py" , "--host", "127.0.0.1", "--port", "50051"]
-CMD ["python", "master.py"]
+ENTRYPOINT [ "python", "master.py"]
