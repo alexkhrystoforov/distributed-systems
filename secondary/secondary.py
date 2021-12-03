@@ -10,12 +10,15 @@ import time
 import argparse
 import grpc
 import logging
+import sys
 
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 data_dict = {'id': [], 'msg': []}
 delay = 0
 
+ipaddress = sys.argv[1]
+host = int(sys.argv[2])
 
 class UserServicer(user_pb2_grpc.UserServiceServicer):
     def get(self, request, context):
@@ -61,7 +64,8 @@ class HealthServicer(health_pb2_grpc.HealthServicer):
         return health_pb2.HealthCheckResponse(status='alive')
 
 
-def grpc_server(port):
+# def grpc_server(port):
+def grpc_server():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
     # Register Health service
@@ -77,9 +81,12 @@ def grpc_server(port):
     user_pb2_grpc.add_UserServiceServicer_to_server(user_serve, server)
 
     logging.info('GRPC running')
-    server.add_insecure_port('localhost:'+port)
+    # server.add_insecure_port('localhost:'+port)
+    server.add_insecure_port(f'{ipaddress}:{host}')
     server.start()
-    print(f'server {port} is started')
+    print(f'server {ipaddress}:{host} is started')
+    # print(f'server localhost:{port} is started')
+
     try:
         while True:
             time.sleep(_ONE_DAY_IN_SECONDS)
@@ -89,13 +96,14 @@ def grpc_server(port):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='client')
-    parser.add_argument('--port', help='server port')
-    parser.add_argument('--sleep', help='call post method', required=False)
-    args = parser.parse_args()
-    if args.sleep:
-        delay = int(args.sleep)
-
-    grpc_server(args.port)
+    # parser = argparse.ArgumentParser(description='client')
+    # parser.add_argument('--port', help='server port')
+    # parser.add_argument('--sleep', help='call post method', required=False)
+    # args = parser.parse_args()
+    # if args.sleep:
+    #     delay = int(args.sleep)
+    #
+    # grpc_server(args.port)
+    grpc_server()
 
 
