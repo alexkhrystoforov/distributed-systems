@@ -14,35 +14,22 @@ import logging
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 data_dict = {'id': [], 'msg': []}
-
 delay = 0
 
 
 class UserServicer(user_pb2_grpc.UserServiceServicer):
     def get(self, request, context):
-        last_ordered_msg = 0
         print("Process get request...")
 
-        if len(data_dict.get('id')) == 1 and data_dict.get('id')[0] == 1:
-            return user_pb2.UserGetResponse(msg=data_dict.get('msg'))
+        last_ordered_msg = 0
+        w = [x + 1 for x in range(len(data_dict.get('id')))]
+        for x, y in zip(data_dict.get('id'), w):
+            if x - y == 0:
+                last_ordered_msg = x
+            else:
+                break
 
-        elif len(data_dict.get('id')) >= 2:
-            for x in data_dict.get('id'):
-                if x == data_dict.get('id')[-1] and x - data_dict.get('id')[data_dict.get('id').index(x) - 1] == 1:
-                    last_ordered_msg = x + 1
-                elif x - data_dict.get('id')[data_dict.get('id').index(x) + 1] == -1:
-                    last_ordered_msg = x + 1
-                else:
-                    if x == 1 and x - data_dict.get('id')[data_dict.get('id').index(x) + 1] != -1:
-                        last_ordered_msg = 1
-                        break
-                    else:
-                        break
-
-            return user_pb2.UserGetResponse(msg=data_dict.get('msg')[:last_ordered_msg])
-
-        else:
-            return user_pb2.UserGetResponse(msg=data_dict.get('msg'))
+        return user_pb2.UserGetResponse(msg=data_dict.get('msg')[:last_ordered_msg])
 
 
 class MasterServicer(master_to_secondary_pb2_grpc.MasterServiceServicer):
