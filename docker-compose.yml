@@ -1,0 +1,19 @@
+version: "3"
+services:
+  master:
+   build: ./master
+   ports: ["50051:50051"]
+   environment:
+     - PYTHONUNBUFFERED=1
+  node1:
+   build: ./secondary
+   ports: ["50052:50052"]
+   command: node1 50052
+   environment:
+     - PYTHONUNBUFFERED=1
+  node2:
+   build: ./secondary
+   ports: ["50053:50053"]
+   command: node2 50053
+   environment:
+     - PYTHONUNBUFFERED=1
