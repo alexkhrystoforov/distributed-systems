@@ -16,12 +16,14 @@ import math
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 data_dict = {'id': [], 'msg': []}
-# servers_ports = ["localhost:50052", "localhost:50053"]
-servers_ports = ["node1:50052", "node2:50053"]
+# servers_ports = ["localhost:50052", "localhost:50053"] # for local run
+servers_ports = ["node1:50052", "node2:50053"]  # for docker run
 servers_health = {servers_ports[0]: False, servers_ports[1]: False}
 
 quorum = math.ceil(len(servers_ports) + 1 // 2)
 quorum_status = False
+# delay_time = [0.5,1,2,4,8,20]
+delay_time = [math.exp(x) for x in range(15)]
 
 
 class UserServicer(user_pb2_grpc.UserServiceServicer):
@@ -53,47 +55,64 @@ class UserServicer(user_pb2_grpc.UserServiceServicer):
             return user_pb2.UserGetResponse(msg=data_dict.get('msg'))
 
 
-def quorum_check(servers_health):
-    while True:
-        if sum(servers_health.values()) >= quorum-1:
-            return True
-        else:
-            return False
+def quorum_check():
+    if sum(servers_health.values()) >= quorum-1:
+        return True
+    else:
+        return False
 
 
-def heartbeat():
-    global servers_health
+def single_heartbeat(port, server_health_history, i=0):
+    try:
+        with grpc.insecure_channel(port) as channel:
+            stub = health_pb2_grpc.HealthStub(channel)
+            response = stub.Check(health_pb2.HealthCheckRequest(service=''))
+            server_health_history.append(True)
+
+            # check if 3 last single heartbeats were successful => server_health - alive
+            if sum(server_health_history[-3:]) == 3:
+                return True
+
+            # only 1 second sleep if received single heartbeat just now
+            time.sleep(delay_time[0])
+            single_heartbeat(port, server_health_history)
+
+    except grpc._channel._InactiveRpcError:
+        print(f'after attempt №{i+1} server {port} - NOT AVAILABLE')
+        server_health_history.append(False)
+
+        # with each unsuccessful single heartbeat increase sleep time exponentially
+        time.sleep(delay_time[i])
+        single_heartbeat(port, server_health_history, i+1)
+
+
+def heartbeat(port):
     global quorum_status
+    server_health_history = []
 
     while True:
-        for port in servers_ports:
-            try:
-                with grpc.insecure_channel(port) as channel:
-                    stub = health_pb2_grpc.HealthStub(channel)
-                    response = stub.Check(health_pb2.HealthCheckRequest(service=''))
-                    servers_health.update({port: True})
-                    print(f'heartbeat from {port} - AVAILABLE')
+        if single_heartbeat(port, server_health_history):
+            servers_health.update({port: True})
+            quorum_status = quorum_check()
+            print(f'received 3 heartbeats from {port} => AVAILABLE. quorum status: ', quorum_status)
 
-            except grpc._channel._InactiveRpcError:
-                servers_health.update({port: False})
-                print(f'heartbeat from {port} - status UNAVAILABLE')
-
-        quorum_status = quorum_check(servers_health)
-        print('quorum status: ', quorum_check(servers_health))
-
-        time.sleep(3)
+            # clear history
+            server_health_history = []
+            time.sleep(3)
 
 
-def replicate_method(request_msg, cur_id, port, latch):
-    while True:
-        if servers_health.get(port):
-            with grpc.insecure_channel(port) as channel:
-                print(f'Start replication to secondary with port {port} \n')
-                stub = master_to_secondary_pb2_grpc.MasterServiceStub(channel)
-                response = stub.replicate(master_to_secondary_pb2.ReplicateRequest(msg=request_msg, id=cur_id))
-                print(f'replicated to {port}, response ', response)
-                latch.count_down()
-                break
+def replicate_method(request_msg, cur_id, port, latch, i=0):
+
+    if servers_health.get(port):
+        with grpc.insecure_channel(port) as channel:
+            print(f'Start replication to secondary with port {port} \n')
+            stub = master_to_secondary_pb2_grpc.MasterServiceStub(channel)
+            response = stub.replicate(master_to_secondary_pb2.ReplicateRequest(msg=request_msg, id=cur_id))
+            print(f'replicated to {port}, response ', response)
+            latch.count_down()
+    else:
+        time.sleep(delay_time[i])
+        replicate_method(request_msg, cur_id, port, latch, i+1)
 
 
 def save(request):
@@ -142,9 +161,10 @@ def grpc_server():
     server.add_insecure_port('[::]:50051')
     server.start()
 
-    # run hearbeats in a thread
-    t = threading.Thread(target=heartbeat)
-    t.start()
+    # run hearbeats in a threads
+    for port in servers_ports:
+        t = threading.Thread(target=heartbeat, args=[port])
+        t.start()
 
     try:
         while True:
