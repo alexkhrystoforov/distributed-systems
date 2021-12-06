@@ -16,14 +16,13 @@ import math
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 data_dict = {'id': [], 'msg': []}
-# servers_ports = ["localhost:50052", "localhost:50053"] # for local run
-servers_ports = ["node1:50052", "node2:50053"]  # for docker run
+servers_ports = ["localhost:50052", "localhost:50053"] # for local run
+# servers_ports = ["node1:50052", "node2:50053"]  # for docker run
 servers_health = {servers_ports[0]: False, servers_ports[1]: False}
 
 quorum = math.ceil(len(servers_ports) + 1 // 2)
 quorum_status = False
-# delay_time = [0.5,1,2,4,8,20]
-delay_time = [math.exp(x) for x in range(15)]
+delay_time = [math.exp(x) for x in range(10)]
 
 
 class UserServicer(user_pb2_grpc.UserServiceServicer):
@@ -63,6 +62,10 @@ def quorum_check():
 
 
 def single_heartbeat(port, server_health_history, i=0):
+    # time out if i=4 ( delay_time[4] = math.exp(3) )
+    # if i == 4:
+    #     return False
+
     try:
         with grpc.insecure_channel(port) as channel:
             stub = health_pb2_grpc.HealthStub(channel)
@@ -73,8 +76,8 @@ def single_heartbeat(port, server_health_history, i=0):
             if sum(server_health_history[-3:]) == 3:
                 return True
 
-            # only 1 second sleep if received single heartbeat just now
-            time.sleep(delay_time[0])
+            # only 0.5 second sleep if received single heartbeat just now
+            time.sleep(delay_time[0]//2)
             single_heartbeat(port, server_health_history)
 
     except grpc._channel._InactiveRpcError:
@@ -96,8 +99,6 @@ def heartbeat(port):
             quorum_status = quorum_check()
             print(f'received 3 heartbeats from {port} => AVAILABLE. quorum status: ', quorum_status)
 
-            # clear history
-            server_health_history = []
             time.sleep(3)
 
 
