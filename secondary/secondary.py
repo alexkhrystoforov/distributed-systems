@@ -18,7 +18,8 @@ data_dict = {'id': [], 'msg': []}
 delay = 0
 
 ipaddress = sys.argv[1]
-host = int(sys.argv[2])
+host = sys.argv[2]
+
 
 class UserServicer(user_pb2_grpc.UserServiceServicer):
     def get(self, request, context):
@@ -64,8 +65,7 @@ class HealthServicer(health_pb2_grpc.HealthServicer):
         return health_pb2.HealthCheckResponse(status='alive')
 
 
-# def grpc_server(port):
-def grpc_server():
+def grpc_server(port=ipaddress+':'+host):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
     # Register Health service
@@ -81,11 +81,9 @@ def grpc_server():
     user_pb2_grpc.add_UserServiceServicer_to_server(user_serve, server)
 
     logging.info('GRPC running')
-    # server.add_insecure_port('localhost:'+port)
-    server.add_insecure_port(f'{ipaddress}:{host}')
+    server.add_insecure_port(f'{port}')
     server.start()
-    print(f'server {ipaddress}:{host} is started')
-    # print(f'server localhost:{port} is started')
+    print(f'server {port} is started')
 
     try:
         while True:
@@ -103,7 +101,7 @@ if __name__ == '__main__':
     # if args.sleep:
     #     delay = int(args.sleep)
     #
-    # grpc_server(args.port)
+    # grpc_server('localhost:'+args.port)
     grpc_server()
 
 
