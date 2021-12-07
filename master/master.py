@@ -16,8 +16,8 @@ import math
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 data_dict = {'id': [], 'msg': []}
-servers_ports = ["localhost:50052", "localhost:50053"] # for local run
-# servers_ports = ["node1:50052", "node2:50053"]  # for docker run
+# servers_ports = ["localhost:50052", "localhost:50053"] # for local run
+servers_ports = ["node1:50052", "node2:50053"]  # for docker run
 servers_health = {servers_ports[0]: False, servers_ports[1]: False}
 
 quorum = math.ceil(len(servers_ports) + 1 // 2)
@@ -28,7 +28,7 @@ delay_time = [math.exp(x) for x in range(10)]
 class UserServicer(user_pb2_grpc.UserServiceServicer):
     def append(self, request, context):
 
-        if not quorum_status:
+        if not quorum_check():
             return user_pb2.UserPostResponse(success='there is no quorum the'
                                                      'master is switched into read-only mode')
 
@@ -62,15 +62,13 @@ def quorum_check():
 
 
 def single_heartbeat(port, server_health_history, i=0):
-    # time out if i=4 ( delay_time[4] = math.exp(3) )
-    # if i == 4:
-    #     return False
-
     try:
         with grpc.insecure_channel(port) as channel:
             stub = health_pb2_grpc.HealthStub(channel)
             response = stub.Check(health_pb2.HealthCheckRequest(service=''))
+
             server_health_history.append(True)
+            servers_health.update({port: True})
 
             # check if 3 last single heartbeats were successful => server_health - alive
             if sum(server_health_history[-3:]) == 3:
@@ -81,29 +79,24 @@ def single_heartbeat(port, server_health_history, i=0):
             single_heartbeat(port, server_health_history)
 
     except grpc._channel._InactiveRpcError:
-        print(f'after attempt №{i+1} server {port} - NOT AVAILABLE')
+        print(f'after attempt №{i} server {port} - NOT AVAILABLE')
         server_health_history.append(False)
-
-        # with each unsuccessful single heartbeat increase sleep time exponentially
-        time.sleep(delay_time[i])
-        single_heartbeat(port, server_health_history, i+1)
+        servers_health.update({port: False})
+        return False
 
 
 def heartbeat(port):
-    global quorum_status
     server_health_history = []
-
+    i = 0
     while True:
-        if single_heartbeat(port, server_health_history):
-            servers_health.update({port: True})
-            quorum_status = quorum_check()
-            print(f'received 3 heartbeats from {port} => AVAILABLE. quorum status: ', quorum_status)
+        time.sleep(3)
+        if single_heartbeat(port, server_health_history, i):
+            print(f'received 3 heartbeats from {port} => AVAILABLE')
+        else:
+            i += 1
 
-            time.sleep(3)
 
-
-def replicate_method(request_msg, cur_id, port, latch, i=0):
-
+def replicate_method(request_msg, cur_id, port, latch):
     if servers_health.get(port):
         with grpc.insecure_channel(port) as channel:
             print(f'Start replication to secondary with port {port} \n')
@@ -112,8 +105,8 @@ def replicate_method(request_msg, cur_id, port, latch, i=0):
             print(f'replicated to {port}, response ', response)
             latch.count_down()
     else:
-        time.sleep(delay_time[i])
-        replicate_method(request_msg, cur_id, port, latch, i+1)
+        time.sleep(3)
+        replicate_method(request_msg, cur_id, port, latch)
 
 
 def save(request):
